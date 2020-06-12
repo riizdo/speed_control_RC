@@ -3,45 +3,51 @@
  *  description: speed control in boat RC
  */
 
-#define pulsePin 2
-#define ledPin 13
+//declaration of constants
+#define PULSE_IN_PIN 2
+#define PULSE_OUT_PIN 5
+#define FORWARD_PIN 4
+#define REWIND_PIN 3
+#define MAX_VALUE 1970
+#define MIN_VALUE 1190
+#define SUP 15
 
-unsigned long int value;
-unsigned long int maxValue = 0;
-unsigned long int minValue = 40000;
+//declaration of variables
+unsigned long int value = 0;
 int val = 0;
 
-
+//initialization
 void setup() {
   Serial.begin(9600);
 
-  pinMode(pulsePin, INPUT);
-  pinMode(ledPin, OUTPUT);
+  pinMode(PULSE_IN_PIN, INPUT);
+  pinMode(FORWARD_PIN, OUTPUT);
+  pinMode(REWIND_PIN, OUTPUT);
+  pinMode(PULSE_OUT_PIN, OUTPUT);
 }
 
+//main
 void loop() {
-
-  value = pulseIn(pulsePin, HIGH);
-
-
-
-  if (value > maxValue) {
-    maxValue = value;
-  }
-  if (value < minValue) {
-    minValue = value;
-  }
+  value = pulseIn(PULSE_IN_PIN, HIGH);
   
-  val = map(value, minValue, maxValue, 255, 0);
+  val = map(value, MIN_VALUE, MAX_VALUE, 255, -255);
+
+  if (val < 0 && REWIND_PIN == LOW && FORWARD_PIN == LOW) {
+    digitalWrite(REWIND_PIN, HIGH);
+  } else if (val < 0 && REWIND_PIN == LOW && FORWARD_PIN == HIGH) {
+    digitalWrite(FORWARD_PIN, LOW);
+  } else if (val > SUP && FORWARD_PIN == LOW && REWIND_PIN == LOW) {
+    digitalWrite(FORWARD_PIN, HIGH);
+  } else if (val > SUP && FORWARD_PIN == LOW && REWIND_PIN == HIGH) {
+    digitalWrite(REWIND_PIN, LOW);
+  } else {
+    
+  }//close condition of direction motors
   
-  analogWrite(ledPin, val);
+  analogWrite(PULSE_OUT_PIN, val * -1);
   
   Serial.print("El valor de la entrada: ");
   Serial.print(value);
-  Serial.print(" // ");
-  Serial.print(minValue);
-  Serial.print(" // ");
-  Serial.print(maxValue);
   Serial.print(" // ");
   Serial.println(val);
 }
